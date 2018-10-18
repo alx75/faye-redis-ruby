@@ -16,7 +16,10 @@ module Faye
     def initialize(server, options)
       @server  = server
       @options = options
-      redis
+      @ns = @options[:namespace] || ''
+      @message_channel = @ns + '/notifications/messages'
+      @close_channel   = @ns + '/notifications/close'
+      redis if EventMachine.reactor_running?
     end
 
     def disconnect
@@ -152,7 +155,6 @@ module Faye
         db     = @options[:database]  || DEFAULT_DATABASE
         auth   = @options[:password]  || nil
         gc     = @options[:gc]        || DEFAULT_GC
-        @ns    = @options[:namespace] || ''
         socket = @options[:socket]    || nil
 
         connection = if uri
@@ -162,9 +164,6 @@ module Faye
         else
           EventMachine::Hiredis::Client.new(host, port, auth, db).connect
         end
-
-        @message_channel = @ns + '/notifications/messages'
-        @close_channel   = @ns + '/notifications/close'
 
         @gc = EventMachine.add_periodic_timer(gc, &method(:gc))
         @subscriber = connection.pubsub
@@ -216,7 +215,7 @@ module Faye
           @server.error "Faye::Redis: redis connection failed: #{reason}"
         end
         connection
-      end if EventMachine.reactor_running?
+      end
     end
 
     def get_current_time
