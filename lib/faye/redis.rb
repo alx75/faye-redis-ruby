@@ -184,11 +184,12 @@ module Faye
           @server.info "Faye::Redis: redis pubsub connection reconnected"
         end
         @subscriber.on(:reconnect_failed) do |count|
-          @server.info "Faye::Redis: redis pubsub connection reconnect failed (#{count}/4)"
+          @server.info "Faye::Redis: redis pubsub connection reconnect failed #{count} time(s)"
+          fn = @options[:reconnect_failed] || ->(_, _) {}
+          fn.call(count, 'pubsub')
         end
         @subscriber.on(:failed) do
           @server.error "Faye::Redis: redis pubsub connection failed"
-          EM.add_timer(EM::Hiredis.reconnect_timeout) { @subscriber.reconnect! }
         end
         @subscriber.errback do |reason|
           @server.error "Faye::Redis: redis pubsub connection failed: #{reason}"
@@ -205,11 +206,12 @@ module Faye
           @server.info "Faye::Redis: redis connection reconnected"
         end
         connection.on(:reconnect_failed) do |count|
-          @server.info "Faye::Redis: redis connection reconnect failed (#{count}/4)"
+          @server.info "Faye::Redis: redis connection reconnect failed #{count} time(s)"
+          fn = @options[:reconnect_failed] || ->(_, _) {}
+          fn.call(count, 'redis')
         end
         connection.on(:failed) do
           @server.error "Faye::Redis: redis connection failed"
-          EM.add_timer(EM::Hiredis.reconnect_timeout) { connection.reconnect! }
         end
         connection.errback do |reason|
           @server.error "Faye::Redis: redis connection failed: #{reason}"
