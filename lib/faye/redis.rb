@@ -189,7 +189,7 @@ module Faye
             fn = @options[:reconnect_failed] || ->(_, _) {}
             fn.call(count, 'pubsub')
           rescue => e
-            @server.error "Execution of reconnect_failed lambda failed with #{e}"
+            @server.error "Faye::Redis: Execution of reconnect_failed lambda failed with #{e} (pubsub connection)"
           end
         end
         @subscriber.on(:failed) do
@@ -215,7 +215,7 @@ module Faye
             fn = @options[:reconnect_failed] || ->(_, _) {}
             fn.call(count, 'redis')
           rescue => e
-            @server.error "Execution of reconnect_failed lambda failed with #{e}"
+            @server.error "Faye::Redis: Execution of reconnect_failed lambda failed with #{e} (redis connection)"
           end
         end
         connection.on(:failed) do
